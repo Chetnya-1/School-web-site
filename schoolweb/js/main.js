@@ -1,4 +1,34 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Mobile Menu
+    const menuBtn = document.querySelector('.menu-btn');
+    const nav = document.querySelector('nav');
+    const navLinks = document.querySelectorAll('nav a');
+
+    menuBtn.addEventListener('click', () => {
+        nav.classList.toggle('active');
+        menuBtn.classList.toggle('active');
+        document.body.style.overflow = nav.classList.contains('active') ? 'hidden' : '';
+    });
+
+    navLinks.forEach(link => {
+        link.addEventListener('click', () => {
+            nav.classList.remove('active');
+            menuBtn.classList.remove('active');
+            document.body.style.overflow = '';
+        });
+    });
+
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+        if (nav.classList.contains('active') && 
+            !nav.contains(e.target) && 
+            !menuBtn.contains(e.target)) {
+            nav.classList.remove('active');
+            menuBtn.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    });
+
     // Navbar scroll effect
     const header = document.querySelector('header');
     let lastScroll = 0;
