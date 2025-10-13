@@ -850,8 +850,107 @@ section[id],.section{scroll-margin-top:calc(var(--header-height) + 12px)}
     padding: 60px 20px;
   }
   
+  header {
+    padding: 8px var(--container-padding);
+  }
+
+  .logo {
+    padding: 4px 8px;
+  }
+
+  .logo img {
+    height: 56px;
+  }
+
+  .logo h1 {
+    font-size: 1.1rem;
+  }
+
+  .logo .location {
+    font-size: 0.9rem;
+    display: block;
+    margin: 2px 0 0;
+  }
+
+  nav {
+    position: fixed;
+    top: 0;
+    right: -100%;
+    width: 80%;
+    max-width: 300px;
+    height: 100vh;
+    background: var(--primary-800);
+    padding: 100px 32px;
+    transition: 0.3s ease-in-out;
+    overflow-y: auto;
+  }
+
+  nav.active {
+    right: 0;
+    box-shadow: -5px 0 15px rgba(0,0,0,0.2);
+  }
+
+  nav ul {
+    flex-direction: column;
+    gap: 16px;
+    align-items: stretch;
+  }
+
+  nav a:not(.contact-btn) {
+    display: block;
+    padding: 12px 20px;
+    font-size: 1.1rem;
+    text-align: left;
+    border-radius: 8px;
+  }
+
+  .contact-btn {
+    margin: 16px 0 0;
+    width: 100%;
+    text-align: center;
+  }
+
+  .menu-btn {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 40px;
+    height: 40px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    margin-left: 16px;
+  }
+
+  .menu-btn span {
+    display: block;
+    width: 24px;
+    height: 2px;
+    background: white;
+    margin: 4px 0;
+    transition: 0.3s;
+  }
+
+  .menu-btn.active span:nth-child(1) {
+    transform: rotate(45deg) translate(5px, 5px);
+  }
+
+  .menu-btn.active span:nth-child(2) {
+    opacity: 0;
+  }
+
+  .menu-btn.active span:nth-child(3) {
+    transform: rotate(-45deg) translate(5px, -5px);
+  }
+
   .hero img {
-    height: 400px;
+    height: 380px;
+  }
+
+  .hero-text {
+    width: 90%;
   }
   
   .gallery {
@@ -865,46 +964,40 @@ section[id],.section{scroll-margin-top:calc(var(--header-height) + 12px)}
   }
   
   .staff-container {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: 1fr;
     gap: 24px;
   }
 
-  .leadership-team {
-    grid-template-columns: 1fr;
-    gap: 32px;
+  .staff {
+    padding: 24px;
   }
-  
+
   .staff-avatar {
     width: 160px;
     height: 160px;
-    border-width: 3px;
-  }
-
-  .staff.featured {
-    padding: 32px 24px;
   }
 
   .staff.featured .staff-avatar {
-    width: 190px;
-    height: 190px;
-    border-width: 4px;
+    width: 180px;
+    height: 180px;
   }
 
   .staff-avatar .initials {
-    font-size: 3.2rem;
+    font-size: 3rem;
   }
 
-  .staff.featured .staff-avatar .initials {
-    font-size: 3.8rem;
+  .staff h3 {
+    font-size: 1.3rem;
   }
 
-  .staff.featured h3 {
-    font-size: 1.4rem;
+  #contact p {
+    padding: 0 16px;
   }
 
-  .staff .description {
-    max-width: 100%;
+  .map-container {
+    margin: 32px 16px 0;
   }
+}
 }
 
 @media (max-width: 640px) {
@@ -966,25 +1059,117 @@ section[id],.section{scroll-margin-top:calc(var(--header-height) + 12px)}
 }
 
 @media (max-width: 480px) {
-  .hero img {
-    height: 250px;
+  :root {
+    --header-height: 70px;
   }
-  
+
   .section {
     padding: 40px 16px;
   }
-  
+
+  .logo {
+    gap: 12px;
+  }
+
+  .logo img {
+    height: 48px;
+  }
+
+  .logo h1 {
+    font-size: 1rem;
+  }
+
+  .logo .location {
+    font-size: 0.85rem;
+  }
+
+  .hero img {
+    height: 280px;
+  }
+
+  .hero-text h2 {
+    font-size: 1.6rem;
+  }
+
+  .hero-text p {
+    font-size: 1rem;
+  }
+
+  .section h2 {
+    font-size: 1.5rem;
+  }
+
+  .intro {
+    font-size: 1rem;
+    padding: 0 16px;
+  }
+
+  .about-card {
+    padding: 20px;
+  }
+
+  .about-card h3 {
+    font-size: 1.2rem;
+    margin-bottom: 16px;
+  }
+
+  .about-card li {
+    font-size: 0.95rem;
+    margin-bottom: 12px;
+  }
+
   .gallery {
     grid-template-columns: 1fr;
-  }
-  
-  .gallery img {
-    height: 200px;
-  }
-  
-  .staff-container {
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
     gap: 16px;
+    padding: 12px;
+  }
+
+  .gallery img {
+    height: 220px;
+  }
+
+  .staff {
+    padding: 20px;
+  }
+
+  .staff-avatar {
+    width: 140px;
+    height: 140px;
+  }
+
+  .staff.featured .staff-avatar {
+    width: 160px;
+    height: 160px;
+  }
+
+  .staff-avatar .initials {
+    font-size: 2.5rem;
+  }
+
+  .staff h3 {
+    font-size: 1.2rem;
+  }
+
+  .staff .designation {
+    font-size: 1rem;
+  }
+
+  .staff .credentials {
+    font-size: 0.9rem;
+  }
+
+  #contact p {
+    font-size: 0.95rem;
+    padding: 0 12px;
+  }
+
+  .map-container {
+    margin: 24px 12px 0;
+  }
+
+  footer {
+    padding: 20px 16px;
+    font-size: 0.9rem;
   }
 }
 
