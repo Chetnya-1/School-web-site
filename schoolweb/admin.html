@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel - Government Senior Secondary School Kakira</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .admin-container {
+      max-width: 800px;
+      margin: 100px auto;
+      padding: 40px;
+      background: var(--card-bg);
+      border-radius: var(--border-radius-lg);
+      box-shadow: var(--shadow-xl);
+    }
+    .admin-container h2 {
+      text-align: center;
+      margin-bottom: 30px;
+      color: var(--primary);
+    }
+    .upload-section {
+      margin-bottom: 40px;
+    }
+    .upload-section h3 {
+      margin-bottom: 20px;
+      color: var(--primary-800);
+    }
+    .file-input {
+      margin-bottom: 20px;
+    }
+    .file-input label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 500;
+    }
+    .file-input input[type="file"] {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+    }
+    .upload-btn {
+      padding: 12px 24px;
+      background: var(--gradient-primary);
+      color: white;
+      border: none;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .upload-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+    .preview-section {
+      margin-top: 20px;
+    }
+    .preview-section h4 {
+      margin-bottom: 10px;
+    }
+    .image-preview {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .preview-item {
+      position: relative;
+      width: 100px;
+      height: 100px;
+    }
+    .preview-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: var(--border-radius);
+    }
+    .remove-btn {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .logout-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      padding: 8px 16px;
+      background: #dc3545;
+      color: white;
+      border: none;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+    }
+    .gallery-section {
+      margin-top: 40px;
+    }
+    .gallery-section h3 {
+      margin-bottom: 20px;
+      color: var(--primary-800);
+    }
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 15px;
+    }
+    .gallery-item {
+      position: relative;
+    }
+    .gallery-item img {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+    }
+    .delete-btn {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      background: rgba(220, 53, 69, 0.8);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 25px;
+      height: 25px;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .gallery-item:hover .delete-btn {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <button class="logout-btn" onclick="logout()">Logout</button>
+
+  <header>
+    <div class="logo">
+      <img src="images/Himachal-Pradesh-Board-Of-School-Education.png" alt="School Logo">
+      <h1>Government Senior Secondary School kakira<span class="location">- Chamba  Himachal Pradesh</span></h1>
+    </div>
+    <nav>
+      <ul>
+        <li><a href="index.html">Home</a></li>
+        <li><a href="index.html#about">About</a></li>
+        <li><a href="index.html#gallery">Gallery</a></li>
+        <li><a href="index.html#staff">Staff</a></li>
+        <li><a href="index.html#contact">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <div class="admin-container">
+      <h2>Admin Panel</h2>
+
+      <div class="upload-section">
+        <h3>Upload Images to Gallery</h3>
+        <div class="file-input">
+          <label for="imageUpload">Select Images:</label>
+          <input type="file" id="imageUpload" multiple accept="image/*">
+        </div>
+        <button class="upload-btn" onclick="uploadImages()">Upload Selected Images</button>
+
+        <div class="preview-section">
+          <h4>Preview:</h4>
+          <div id="imagePreview" class="image-preview"></div>
+        </div>
+      </div>
+
+      <div class="gallery-section">
+        <h3>Current Gallery Images</h3>
+        <button class="upload-btn" onclick="saveGallery()" style="margin-bottom: 20px;">Save Gallery Changes</button>
+        <div id="saveMessage" style="display: none; color: green; margin-bottom: 10px;">Gallery saved successfully!</div>
+        <div id="currentGallery" class="gallery-grid"></div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Check if admin is logged in
+    if (!localStorage.getItem('adminLoggedIn')) {
+      window.location.href = 'login.html';
+    }
+
+    let selectedFiles = [];
+    const imageUpload = document.getElementById('imageUpload');
+    const imagePreview = document.getElementById('imagePreview');
+
+    // Handle file selection
+    imageUpload.addEventListener('change', function(e) {
+      selectedFiles = Array.from(e.target.files);
+      displayPreview();
+    });
+
+    function displayPreview() {
+      imagePreview.innerHTML = '';
+      selectedFiles.forEach((file, index) => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const previewItem = document.createElement('div');
+          previewItem.className = 'preview-item';
+          previewItem.innerHTML = `
+            <img src="${e.target.result}" alt="Preview">
+            <button class="remove-btn" onclick="removePreview(${index})">×</button>
+          `;
+          imagePreview.appendChild(previewItem);
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function removePreview(index) {
+      selectedFiles.splice(index, 1);
+      displayPreview();
+      // Update file input
+      const dt = new DataTransfer();
+      selectedFiles.forEach(file => dt.items.add(file));
+      imageUpload.files = dt.files;
+    }
+
+    function uploadImages() {
+      if (selectedFiles.length === 0) {
+        alert('Please select images to upload');
+        return;
+      }
+
+      selectedFiles.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const imageData = {
+            src: e.target.result,
+            alt: file.name,
+            id: Date.now() + Math.random()
+          };
+
+          // Store in localStorage
+          const galleryImages = JSON.parse(localStorage.getItem('galleryImages') || '[]');
+          galleryImages.push(imageData);
+          localStorage.setItem('galleryImages', JSON.stringify(galleryImages));
+        };
+        reader.readAsDataURL(file);
+      });
+
+      alert('Images uploaded successfully!');
+      selectedFiles = [];
+      imagePreview.innerHTML = '';
+      imageUpload.value = '';
+      loadGallery();
+    }
+
+    function loadGallery() {
+      const currentGallery = document.getElementById('currentGallery');
+      const galleryImages = JSON.parse(localStorage.getItem('galleryImages') || '[]');
+
+      currentGallery.innerHTML = '';
+      galleryImages.forEach((image, index) => {
+        const galleryItem = document.createElement('div');
+        galleryItem.className = 'gallery-item';
+        galleryItem.innerHTML = `
+          <img src="${image.src}" alt="${image.alt}">
+          <button class="delete-btn" onclick="deleteImage(${index})">×</button>
+        `;
+        currentGallery.appendChild(galleryItem);
+      });
+    }
+
+    function deleteImage(index) {
+      const galleryImages = JSON.parse(localStorage.getItem('galleryImages') || '[]');
+      galleryImages.splice(index, 1);
+      localStorage.setItem('galleryImages', JSON.stringify(galleryImages));
+      loadGallery();
+    }
+
+    function saveGallery() {
+      // Since changes are already saved to localStorage automatically,
+      // this just provides user feedback
+      const saveMessage = document.getElementById('saveMessage');
+      saveMessage.style.display = 'block';
+      setTimeout(() => {
+        saveMessage.style.display = 'none';
+      }, 3000);
+    }
+
+    // Load gallery on page load
+    loadGallery();
+  </script>
+</body>
+</html>
