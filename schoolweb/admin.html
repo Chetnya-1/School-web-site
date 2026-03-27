@@ -99,6 +99,21 @@
       border-radius: var(--border-radius);
       cursor: pointer;
     }
+    .home-btn {
+      display: none;
+      padding: 10px 20px;
+      background: var(--gradient-primary);
+      color: white;
+      border: none;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 768px) {
+      .home-btn {
+        display: block;
+      }
+    }
     .gallery-section {
       margin-top: 40px;
     }
@@ -132,7 +147,7 @@
       width: 25px;
       height: 25px;
       cursor: pointer;
-      opacity: 0;
+      opacity: 1;
       transition: opacity 0.3s;
     }
     .gallery-item:hover .delete-btn {
@@ -148,6 +163,11 @@
       <img src="images/Himachal-Pradesh-Board-Of-School-Education.png" alt="School Logo">
       <h1>Government Senior Secondary School kakira<span class="location">- Chamba  Himachal Pradesh</span></h1>
     </div>
+    <button class="menu-btn" aria-label="Toggle Menu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
     <nav>
       <ul>
         <li><a href="index.html">Home</a></li>
@@ -161,6 +181,7 @@
 
   <main>
     <div class="admin-container">
+      <button class="home-btn" onclick="window.location.href='index.html'">Home</button>
       <h2>Admin Panel</h2>
 
       <div class="upload-section">
@@ -228,62 +249,109 @@
       imageUpload.files = dt.files;
     }
 
-    function uploadImages() {
+    async function uploadImages() {
       if (selectedFiles.length === 0) {
         alert('Please select images to upload');
         return;
       }
 
-      selectedFiles.forEach(file => {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          const imageData = {
-            src: e.target.result,
-            alt: file.name,
-            id: Date.now() + Math.random()
+      const formData = new FormData();
+      selectedFiles.forEach(file => formData.append('images', file));
+
+      try {
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData
+        });
+
+        if (!response.ok) throw new Error('Upload failed');
+
+        alert('Images uploaded successfully!');
+        selectedFiles = [];
+        imagePreview.innerHTML = '';
+        imageUpload.value = '';
+        await loadGallery();
+      } catch (error) {
+        console.error('Upload error:', error);
+
+        // API unavailable, fallback to localStorage so admin can continue
+        selectedFiles.forEach(file => {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            const galleryImages = JSON.parse(localStorage.getItem('galleryImages') || '[]');
+            galleryImages.push({ src: e.target.result, alt: file.name });
+            localStorage.setItem('galleryImages', JSON.stringify(galleryImages));
           };
+          reader.readAsDataURL(file);
+        });
 
-          // Store in localStorage
-          const galleryImages = JSON.parse(localStorage.getItem('galleryImages') || '[]');
-          galleryImages.push(imageData);
-          localStorage.setItem('galleryImages', JSON.stringify(galleryImages));
-        };
-        reader.readAsDataURL(file);
-      });
-
-      alert('Images uploaded successfully!');
-      selectedFiles = [];
-      imagePreview.innerHTML = '';
-      imageUpload.value = '';
-      loadGallery();
+        alert('Upload API failed; saved locally. Start server and refresh to apply to database.');
+        selectedFiles = [];
+        imagePreview.innerHTML = '';
+        imageUpload.value = '';
+        await loadGallery();
+      }
     }
 
-    function loadGallery() {
+    async function loadGallery() {
       const currentGallery = document.getElementById('currentGallery');
-      const galleryImages = JSON.parse(localStorage.getItem('galleryImages') || '[]');
+      try {
+        const response = await fetch('/api/gallery');
+        const galleryImages = await response.json();
 
-      currentGallery.innerHTML = '';
-      galleryImages.forEach((image, index) => {
-        const galleryItem = document.createElement('div');
-        galleryItem.className = 'gallery-item';
-        galleryItem.innerHTML = `
-          <img src="${image.src}" alt="${image.alt}">
-          <button class="delete-btn" onclick="deleteImage(${index})">×</button>
-        `;
-        currentGallery.appendChild(galleryItem);
-      });
+        currentGallery.innerHTML = '';
+        galleryImages.forEach(image => {
+          const galleryItem = document.createElement('div');
+          galleryItem.className = 'gallery-item';
+          galleryItem.innerHTML = `
+            <img src="${image.src}" alt="${image.alt}">
+            <button class="delete-btn" onclick="deleteImage(${image.id})">×</button>
+          `;
+          currentGallery.appendChild(galleryItem);
+        });
+      } catch (error) {
+        console.error('Load gallery error:', error);
+        // Fallback to localStorage when API is unreachable
+        const galleryImages = JSON.parse(localStorage.getItem('galleryImages') || '[]');
+        currentGallery.innerHTML = '';
+        galleryImages.forEach((image, index) => {
+          const galleryItem = document.createElement('div');
+          galleryItem.className = 'gallery-item';
+          galleryItem.innerHTML = `
+            <img src="${image.src}" alt="${image.alt}">
+            <button class="delete-btn" onclick="deleteImage(${index})">×</button>
+          `;
+          currentGallery.appendChild(galleryItem);
+        });
+      }
     }
 
-    function deleteImage(index) {
-      const galleryImages = JSON.parse(localStorage.getItem('galleryImages') || '[]');
-      galleryImages.splice(index, 1);
-      localStorage.setItem('galleryImages', JSON.stringify(galleryImages));
-      loadGallery();
+    async function deleteImage(id) {
+      console.log('Attempting to delete image with id:', id);
+      if (!confirm('Delete this image from gallery?')) return;
+      try {
+        console.log('Sending DELETE request to /api/gallery/' + id);
+        const response = await fetch(`/api/gallery/${id}`, { method: 'DELETE' });
+        console.log('Response status:', response.status);
+        if (!response.ok) throw new Error('Delete failed');
+        console.log('Delete successful, reloading gallery');
+        await loadGallery();
+      } catch (error) {
+        console.error('Delete error:', error);
+        // Fallback: delete from localStorage if API fails
+        const galleryImages = JSON.parse(localStorage.getItem('galleryImages') || '[]');
+        if (id < galleryImages.length) {
+          galleryImages.splice(id, 1);
+          localStorage.setItem('galleryImages', JSON.stringify(galleryImages));
+          alert('Deleted from local storage.');
+          await loadGallery();
+        } else {
+          alert('Could not delete image. Please try again.');
+        }
+      }
     }
 
     function saveGallery() {
-      // Since changes are already saved to localStorage automatically,
-      // this just provides user feedback
       const saveMessage = document.getElementById('saveMessage');
       saveMessage.style.display = 'block';
       setTimeout(() => {
